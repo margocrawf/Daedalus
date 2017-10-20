@@ -30,20 +30,16 @@ void move_motor(int dist) {
   if (dist > 100) {
     Serial.println("Too close! Retreat!");
     if (currentpos < 89) {
-      for (int pos = currentpos; pos <= 90; pos++) {
-        servo.write(pos);
-        currentpos = pos;
+        currentpos += 5;
+        servo.write(currentpos);
         delay(50);
-      }
     }
   } else {
     Serial.println("I believe I can fly!");
     if (currentpos > 0) {
-      for (int pos = currentpos; pos >= 0; pos--) {
-        servo.write(pos);
-        currentpos = pos;
+        currentpos -= 5;
+        servo.write(currentpos);
         delay(50);
-      }
     }
   }
 }
