@@ -59,12 +59,7 @@ float average_distance_val(int reps) {
   int sensorIn = analogRead(forceInputPin);
   Serial.println(sensorIn);
   int degree = map(sensorIn, 610, 850, 0, 180);
-  if (degree > 180) {
-    degree = 180;
-  }
-  if (degree < 0) {
-    degree = 0;
-  }
+  degree = constrain(degree, 0, 180);
   if ((degree + 10 > currentpos) and (degree - 10 < currentpos)) {
     //don't do anything, just stay where you are
     return;
