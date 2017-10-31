@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( road_detection )
+find_package( OpenCV REQUIRED )
+add_executable( people_find people_find.cpp )
+target_link_libraries( people_find ${OpenCV_LIBS} )
