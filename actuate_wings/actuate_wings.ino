@@ -5,10 +5,13 @@ Servo servo;
 // pin values for sensors
 int IRInPin = A0; // infrared sensor
 const int forceInputPin = A1; // pin for force sensitive resistor
-
+// other global variables
 int currentpos;
 bool isOpening = true;
 
+/*
+ * Starting up things.
+ */
 void setup() {
   // start the serial
   Serial.begin(9600);
@@ -19,16 +22,16 @@ void setup() {
 /*
  * Take infrared value, use regression to
  * give us an approximate distance
- * TODO make it calibrated
+ * TODO make the calibration good enough to use
  */
 int sensorval_to_dist(int sensorVal) {
   float p1 = 0.0002808;
   float p2 = -0.3229;
   float p3 = 112.5;
   float dist = p1*pow(sensorVal,2) + p2*sensorVal + p3;
-  Serial.print(dist);
-  Serial.print(", ");
-  Serial.println(sensorVal);
+//  Serial.print(dist);
+//  Serial.print(", ");
+//  Serial.println(sensorVal);
   return sensorVal;
 }
 
@@ -53,18 +56,14 @@ float average_distance_val(int reps) {
 }
 
 /*
- * Open the wing based on force sensor value
+ * MODE: Open the wing based on force sensor value.
  */
  void force_sense(int dist) {
   int sensorIn = analogRead(forceInputPin);
+  Serial.print("Force sensor: ");
   Serial.println(sensorIn);
   int degree = map(sensorIn, 610, 850, 0, 180);
-  if (degree > 180) {
-    degree = 180;
-  }
-  if (degree < 0) {
-    degree = 0;
-  }
+  degree = constrain(degree, 0, 180);
   if ((degree + 10 > currentpos) and (degree - 10 < currentpos)) {
     //don't do anything, just stay where you are
     return;
@@ -72,7 +71,7 @@ float average_distance_val(int reps) {
   else if (degree < currentpos) {
     // move down
     for (int i = currentpos; i > degree; i--) {
-      //delay(25);
+      delay(25);
       currentpos -= 1;
       servo.write(currentpos);
     }
@@ -84,7 +83,7 @@ float average_distance_val(int reps) {
       return;
     }
     for (int i = currentpos; i < degree; i++) {
-      //delay(25);
+      delay(25);
       currentpos += 1;
       servo.write(currentpos);
     }
@@ -92,7 +91,7 @@ float average_distance_val(int reps) {
   }
 
 /*
- * Flap the wing (one of the states we might want)
+ * MODE: Flap the wing (one of the states we might want)
  */
 void flap(int dist) {
   if (isOpening and dist < 300) {
@@ -115,7 +114,7 @@ void flap(int dist) {
 }
 
 /*
- * Try to hold open position, close if something is close
+ * MODE: Try to hold open position, close if something is close
  */
 void stay_open(int dist) {
   if (dist < 30 ) {
@@ -143,6 +142,9 @@ void move_motor(int dist) {
   force_sense(dist);
 }
 
+/*
+ * Main loop function
+ */
 void loop() {
   // read from the sensor
   int distance = average_distance_val(1);
