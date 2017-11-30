@@ -148,6 +148,7 @@ void move_motor(int dist) {
 void loop() {
   // read from the sensor
   int distance = average_distance_val(1);
+  Serial.println(distance);
   // move (bitch, get out the way)
   move_motor(distance);
 }
