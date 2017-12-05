@@ -4,20 +4,25 @@
 #include "utility/Adafruit_MS_PWMServoDriver.h"
 #include "fluttering.h"
 
+// define motorshield
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
+// define motors
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 
 // interrupt pin
 int interruptPin = 2; 
 
+// delay time for flutters
 int delayTime = 20;
 
 // defining wing structs, in the following order:
 // IRPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
+// upDirection, downDirection
 Wing rightWing = {A0, A2, A4, NULL, NULL, true, true, BACKWARD, FORWARD};
 Wing leftWing = {A1, A3, A5, NULL, NULL, true, true, FORWARD, BACKWARD};
+
 
 /*
  * Starting up things.
@@ -100,8 +105,7 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
   } else {
     wing.isOpening = false;
   }
-  if(wing.isOpening){
-     if (wing.currentpos + 20 < 89) {
+  if ((wing.isOpening) and (wing.currentpos + 20 < 89)) {
         if(wing.isUpFlutter) {
            for (int i = 0; i < 20; i++) {
            wing.currentpos+=1;
@@ -116,7 +120,6 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
       }   
     }
      
-    } 
   } else { //is not opening
       if (wing.currentpos - 20 > 0){
         if (!wing.isUpFlutter) {
@@ -132,7 +135,7 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
           delay(delayTime);
         }
       }
-      } 
+     } 
     }
  }
 
