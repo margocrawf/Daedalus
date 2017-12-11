@@ -59,36 +59,33 @@ void setup() {
   delayMicroseconds(10); // Added this line
   digitalWrite(wing.trigPin, LOW);
   long distance = pulseIn(wing.echoPin, HIGH);
-  Serial.println(distance);
   return distance;
  }
 
  Wing flex_follow(Adafruit_DCMotor *motor, Wing wing) {
-  // long dist = ultrasonic_dist(wing);
+  long dist = ultrasonic_dist(wing);
   int potVal = analogRead(wing.potPin);
   int flexVal = analogRead(wing.flexInputPin);
-  int flexPot = map(-flexVal, -840, -740, 42, 60);
-  flexPot = constrain(flexPot, 42, 60);
+  int flexPot = map(-flexVal, -840, -760, 40, 60);
+  flexPot = constrain(flexPot, 40, 60);
   Serial.println(flexPot);
   Serial.println(potVal);
+  Serial.println(dist);
 
   motor->setSpeed(150);
   if (potVal > 60) {
-    Serial.println("too high");
     motor->run(wing.downDirection);
-  }
-  else if (potVal < 42) {
-    Serial.println("shawty got low low low low low low low low");
+  } else if (potVal < 40) {
     motor->run(wing.upDirection);
-  }
-  else if (abs(flexPot - potVal) < 5) {
-    Serial.println("hold it right there!");
+//  } else if (dist <= 1000) {
+//    Serial.println("ultrasonic sensor!");
+//    motor->run(RELEASE);
+//    delay(200);
+  } else if (abs(flexPot - potVal) < 2) {
     motor->run(RELEASE);
   } else if (flexPot > potVal) {
-    Serial.println("going up!");
     motor->run(wing.upDirection);
   } else {
-    Serial.println("sugar we're goin down swingin");
     motor->run(wing.downDirection);
   }
   delay(100);
@@ -100,15 +97,16 @@ void setup() {
   int potVal = analogRead(wing.potPin);
   int flexVal = analogRead(wing.flexInputPin);
   Serial.println(potVal);
-  Serial.println(flexVal);
   // new right potVal: 0 to 84
   // int angle = map(potVal, 38, , 45, 90);
   motor->setSpeed(150);
   if (dist <= 1000) {
-    if (potVal >= 45) {
+    if (potVal >= 41) {
       wing.isOpening = false;
+      motor->run(RELEASE);
       delay(100);
     } else {
+      motor->run(RELEASE);
       delay(100);
       return wing;
     }
@@ -117,15 +115,15 @@ void setup() {
     // going up if we can
     if (potVal >= 60) {
       wing.isOpening = false;
-      // motor->run(wing.downDirection);
+       motor->run(RELEASE);
     } else {
       motor->run(wing.upDirection);
   } 
   } else {
     // going down if we can
-    if (potVal <= 45) {
+    if (potVal <= 41) {
       wing.isOpening = true;
-      // motor->run(wing.upDirection);
+       motor->run(RELEASE);
   } else {
       motor->run(wing.downDirection);
     }
