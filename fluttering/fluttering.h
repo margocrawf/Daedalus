@@ -3,7 +3,8 @@
 
 #include "Arduino.h"
 
-typedef struct { int IRPin;
+typedef struct { int trigPin;
+                 int echoPin;
                  int flexInputPin;
                  int potPin;
                  int currentpos;
