@@ -8,7 +8,7 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
 // define motors
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 
 // interrupt pin
@@ -20,9 +20,8 @@ int delayTime = 20;
 // defining wing structs, in the following order:
 // IRPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
 // upDirection, downDirection
-Wing rightWing = {A0, A2, A4, NULL, NULL, true, true, BACKWARD, FORWARD};
-Wing leftWing = {A1, A3, A5, NULL, NULL, true, true, FORWARD, BACKWARD};
-
+Wing rightWing = {1, A2, A0, NULL, NULL, false, false, FORWARD, BACKWARD};
+Wing leftWing = {2, A3, A1, NULL, NULL, true, true, FORWARD, BACKWARD};
 
 /*
  * Starting up things.
@@ -131,12 +130,41 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
       } else {
         for (int i = 0; i < 15; i++){
           wing.currentpos+=1;
-          moveMotor(wing.currentpos,motor,wing);
+          moveMotor(wing.currentpos, motor, wing);
           delay(delayTime);
         }
       }
      } 
     }
+ }
+
+ Wing flap(Adafruit_DCMotor *motor, Wing wing) {
+  int potVal = analogRead(wing.potPin);
+  Serial.println(potVal);
+  // left potVal at top: 915, potVal at bottom: 994
+  // right potVal at top: 939 potVal at bottom: 992
+  // new right potVal: 0 to 84
+  //int angle = map(potVal, 38, , 45, 90);
+  motor->setSpeed(150);
+  if (wing.isOpening) {
+    // going up if we can
+    if (potVal >= 60) {
+      wing.isOpening = false;
+      motor->run(wing.downDirection);
+    } else {
+      motor->run(wing.upDirection);
+  } 
+  } else {
+    // going down if we can
+    if (potVal <= 45) {
+      wing.isOpening = true;
+      motor->run(wing.upDirection);
+  } else {
+      motor->run(wing.downDirection);
+    }
+  }
+  delay(100);
+  return wing;
  }
 
 /*
@@ -149,15 +177,7 @@ void isr_fold_down() {
 
 
 void loop() {
-  // the real code but were commenting it out for now
-  rightWing.flexSensorVal = analogRead(rightWing.flexInputPin);
-//  flutter(rightMotor,rightWing);
-  leftWing.flexSensorVal = analogRead(leftWing.flexInputPin);
-//  flutter(leftMotor, leftWing);
 
-
-    moveMotor(180, rightMotor, rightWing);
-    moveMotor(270, rightMotor, rightWing);
-  
+rightWing = flap(rightMotor, rightWing);
 
 }
