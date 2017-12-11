@@ -13,6 +13,8 @@ typedef struct { int trigPin;
                  bool isOpening; 
                  int upDirection;
                  int downDirection;
+                 int minHeight;
+                 int maxHeight;
                  } Wing;
 
 #endif

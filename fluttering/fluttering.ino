@@ -8,7 +8,7 @@
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
 
 // define motors
-Adafruit_DCMotor *leftMotor = AFMS.getMotor(4);
+Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
 Adafruit_DCMotor *rightMotor = AFMS.getMotor(1);
 
 // interrupt pin
@@ -17,11 +17,13 @@ int interruptPin = 2;
 // delay time for flutters
 int delayTime = 20;
 
+// MIN RIGHT: 38, MAX RIGHT: 60
+// MIN LEFT: 28 MAX LEFT: 50
 // defining wing structs, in the following order:
 // trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
 // upDirection, downDirection
-Wing rightWing = {12, 13, A2, A0, NULL, NULL, false, false, FORWARD, BACKWARD};
-Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true, FORWARD, BACKWARD};
+Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, FORWARD, BACKWARD, 41, 60};
+Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true, BACKWARD, FORWARD, 31, 50};
 
 /*
  * Starting up things.
@@ -100,20 +102,20 @@ void setup() {
   // new right potVal: 0 to 84
   // int angle = map(potVal, 38, , 45, 90);
   motor->setSpeed(150);
-  if (dist <= 1000) {
-    if (potVal >= 41) {
-      wing.isOpening = false;
-      motor->run(RELEASE);
-      delay(100);
-    } else {
-      motor->run(RELEASE);
-      delay(100);
-      return wing;
-    }
-  }
+//  if (dist <= 1000) {
+//    if (potVal >= wing.minHeight) {
+//      wing.isOpening = false;
+//      motor->run(RELEASE);
+//      delay(100);
+//    } else {
+//      motor->run(RELEASE);
+//      delay(100);
+//      return wing;
+//    }
+//  }
   if (wing.isOpening) {
     // going up if we can
-    if (potVal >= 60) {
+    if (potVal >= wing.maxHeight) {
       wing.isOpening = false;
        motor->run(RELEASE);
     } else {
@@ -121,7 +123,7 @@ void setup() {
   } 
   } else {
     // going down if we can
-    if (potVal <= 41) {
+    if (potVal <= wing.minHeight) {
       wing.isOpening = true;
        motor->run(RELEASE);
   } else {
@@ -143,7 +145,8 @@ void isr_fold_down() {
 
 void loop() {
 
-//rightWing = flap(rightMotor, rightWing);
-rightWing = flex_follow(rightMotor, rightWing);
+rightWing = flap(rightMotor, rightWing);
+//rightWing = flex_follow(rightMotor, rightWing);
+leftWing = flap(leftMotor, leftWing);
 
 }
