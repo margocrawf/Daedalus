@@ -50,99 +50,6 @@ void setup() {
   
 }
 
-/*
- * Move a motor to a goal angle, based on pot.
- * It's a DIY servo!
- */
-void moveMotor(int goalAngle, Adafruit_DCMotor *motor, Wing wing){
-  
-  int potVal = analogRead(wing.potPin);
-  int wingAngle = map(potVal, 0, 1023, 0, 270);
-  if (wingAngle < goalAngle) {
-    // moving up
-    while ( wingAngle < goalAngle) {
-      Serial.println(wingAngle);
-      motor->setSpeed(100);
-      motor->run(wing.upDirection);
-      delay(1000);
-      Serial.println("moving up");
-      int potVal = analogRead(wing.potPin);
-      wingAngle = map(potVal, 0, 1023, 0, 270);
-    }
-  }
-  else {
-    while ( wingAngle > goalAngle) {
-      Serial.println(wingAngle);
-      motor-> setSpeed(100);
-      motor->run(wing.downDirection);
-      delay(100);
-      Serial.println("moving down");
-      int potVal = analogRead(wing.potPin);
-      wingAngle = map(potVal, 0, 1023, 0, 270);
-    }
-  }
-}
-
-/*
- * flutter all the way
- */
-void flutter (Adafruit_DCMotor *motor, Wing wing) {
-  // define the degree from the sensor
-  int degree = map(wing.flexSensorVal, 740, 815, 0, 135);
-  degree = constrain(degree, 0, 135);
-  //flutter dat shit
-  flutter_to_degree(motor, degree, wing);
-  }
-
-/*
- * flutter to a specific degree
- */
-void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
-
-  Serial.println(wing.flexSensorVal);
-  if (abs(degree - wing.currentpos) < 5) {
-    // stay where u r
-    return;
-  }
-  // determine if you're going up or down
-  if (degree > wing.currentpos) {
-    wing.isOpening = true;
-  } else {
-    wing.isOpening = false;
-  }
-  if ((wing.isOpening) and (wing.currentpos + 20 < 89)) {
-        if(wing.isUpFlutter) {
-           for (int i = 0; i < 20; i++) {
-           wing.currentpos+=1;
-           moveMotor(wing.currentpos,motor,wing);
-           delay (delayTime);
-        } 
-      } else {
-           for (int i = 0; i < 15; i++){
-           wing.currentpos-=1;
-           moveMotor(wing.currentpos,motor,wing);
-           delay (delayTime);
-      }   
-    }
-     
-  } else { //is not opening
-      if (wing.currentpos - 20 > 0){
-        if (!wing.isUpFlutter) {
-        for (int i = 0; i < 20; i++){
-          wing.currentpos-=1;
-          moveMotor(wing.currentpos,motor,wing);
-          delay (delayTime);
-        } 
-      } else {
-        for (int i = 0; i < 15; i++){
-          wing.currentpos+=1;
-          moveMotor(wing.currentpos, motor, wing);
-          delay(delayTime);
-        }
-      }
-     } 
-    }
- }
 
  long ultrasonic_dist(Wing wing) {
   digitalWrite(wing.trigPin, LOW);  // Added this line
@@ -156,10 +63,44 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
   return distance;
  }
 
+ Wing flex_follow(Adafruit_DCMotor *motor, Wing wing) {
+  // long dist = ultrasonic_dist(wing);
+  int potVal = analogRead(wing.potPin);
+  int flexVal = analogRead(wing.flexInputPin);
+  int flexPot = map(-flexVal, -840, -740, 42, 60);
+  flexPot = constrain(flexPot, 42, 60);
+  Serial.println(flexPot);
+  Serial.println(potVal);
+
+  motor->setSpeed(150);
+  if (potVal > 60) {
+    Serial.println("too high");
+    motor->run(wing.downDirection);
+  }
+  else if (potVal < 42) {
+    Serial.println("shawty got low low low low low low low low");
+    motor->run(wing.upDirection);
+  }
+  else if (abs(flexPot - potVal) < 5) {
+    Serial.println("hold it right there!");
+    motor->run(RELEASE);
+  } else if (flexPot > potVal) {
+    Serial.println("going up!");
+    motor->run(wing.upDirection);
+  } else {
+    Serial.println("sugar we're goin down swingin");
+    motor->run(wing.downDirection);
+  }
+  delay(100);
+  return wing;
+ }
+
  Wing flap(Adafruit_DCMotor *motor, Wing wing) {
   long dist = ultrasonic_dist(wing);
   int potVal = analogRead(wing.potPin);
+  int flexVal = analogRead(wing.flexInputPin);
   Serial.println(potVal);
+  Serial.println(flexVal);
   // new right potVal: 0 to 84
   // int angle = map(potVal, 38, , 45, 90);
   motor->setSpeed(150);
@@ -197,13 +138,14 @@ void flutter_to_degree (Adafruit_DCMotor *motor, int degree, Wing wing) {
  * interrupt service routine for putting the wings back down immediately.
  */
 void isr_fold_down() {
-  moveMotor(0, rightMotor, rightWing);
-  moveMotor(0, leftMotor, leftWing);
+//  moveMotor(0, rightMotor, rightWing);
+//  moveMotor(0, leftMotor, leftWing);
 }
 
 
 void loop() {
 
-rightWing = flap(rightMotor, rightWing);
+//rightWing = flap(rightMotor, rightWing);
+rightWing = flex_follow(rightMotor, rightWing);
 
 }
