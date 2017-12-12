@@ -3,6 +3,7 @@
 
 #include "utility/Adafruit_MS_PWMServoDriver.h"
 #include "fluttering.h"
+#include "flap.h"
 
 // define motorshield
 Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
@@ -23,9 +24,9 @@ int delayTime = 20;
 // trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
 // upDirection, downDirection, minHeight, maxHeight, goalVal
 Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, 
-                  FORWARD, BACKWARD, 48, 57, 42 };
+                  FORWARD, BACKWARD, 48, 60, 60 };
 Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true,
-                 BACKWARD, FORWARD, 38, 47 };
+                 BACKWARD, FORWARD, 38, 50, 50 };
 
 /*
  * Starting up things.
@@ -97,45 +98,45 @@ void setup() {
   return wing;
  }
 
- Wing flap(Adafruit_DCMotor *motor, Wing wing) {
-//  long dist = ultrasonic_dist(wing);
-  int potVal = analogRead(wing.potPin);
-  int flexVal = analogRead(wing.flexInputPin);
-  Serial.println(potVal);
-  // new right potVal: 0 to 84
-  // int angle = map(potVal, 38, , 45, 90);
-  motor->setSpeed(150);
-//  if (dist <= 1000) {
-//    if (potVal >= wing.minHeight) {
+// Wing flap(Adafruit_DCMotor *motor, Wing wing) {
+////  long dist = ultrasonic_dist(wing);
+//  int potVal = analogRead(wing.potPin);
+//  int flexVal = analogRead(wing.flexInputPin);
+//  Serial.println(potVal);
+//  // new right potVal: 0 to 84
+//  // int angle = map(potVal, 38, , 45, 90);
+//  motor->setSpeed(150);
+////  if (dist <= 1000) {
+////    if (potVal >= wing.minHeight) {
+////      wing.isOpening = false;
+////      motor->run(RELEASE);
+////      delay(100);
+////    } else {
+////      motor->run(RELEASE);
+////      delay(100);
+////      return wing;
+////    }
+////  }
+//  if (wing.isOpening) {
+//    // going up if we can
+//    if (potVal >= wing.maxHeight) {
 //      wing.isOpening = false;
-//      motor->run(RELEASE);
-//      delay(100);
+//       motor->run(RELEASE);
 //    } else {
-//      motor->run(RELEASE);
-//      delay(100);
-//      return wing;
+//      motor->run(wing.upDirection);
+//  } 
+//  } else {
+//    // going down if we can
+//    if (potVal <= wing.minHeight) {
+//      wing.isOpening = true;
+//       motor->run(RELEASE);
+//  } else {
+//      motor->run(wing.downDirection);
 //    }
 //  }
-  if (wing.isOpening) {
-    // going up if we can
-    if (potVal >= wing.maxHeight) {
-      wing.isOpening = false;
-       motor->run(RELEASE);
-    } else {
-      motor->run(wing.upDirection);
-  } 
-  } else {
-    // going down if we can
-    if (potVal <= wing.minHeight) {
-      wing.isOpening = true;
-       motor->run(RELEASE);
-  } else {
-      motor->run(wing.downDirection);
-    }
-  }
-  delay(50);
-  return wing;
- }
+//  delay(50);
+//  return wing;
+// }
 
 Wing set_goalval(Wing wing, int goal) {
   wing.goalVal = goal;
@@ -194,7 +195,8 @@ void loop() {
 // rightWing = flap(rightMotor, rightWing);
 //rightWing = flex_follow(rightMotor, rightWing);
 // leftWing = flap(leftMotor, leftWing);
-rightWing = go_to_angle(rightMotor, rightWing);
-Serial.println(rightWing.goalVal);
+// rightWing = go_to_angle(rightMotor, rightWing);
+leftWing = go_to_angle(leftMotor, leftWing);
+Serial.println(leftWing.goalVal);
 
 }
