@@ -21,12 +21,14 @@ int delayTime = 20;
 // MIN RIGHT: 38, MAX RIGHT: 60
 // MIN LEFT: 28 MAX LEFT: 50
 // defining wing structs, in the following order:
-// trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
+// trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isWaiting, isOpening
 // upDirection, downDirection, minHeight, maxHeight, goalVal
-Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, 
-                  FORWARD, BACKWARD, 48, 60, 60 };
-Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true,
-                 BACKWARD, FORWARD, 38, 50, 50 };
+Wing rightWing = {12, 13, A2, A0, NULL, NULL, false, true, 
+                  FORWARD, BACKWARD, 43, 60, 60 };
+Wing leftWing = {10, 11, A3, A1, NULL, NULL, false, true,
+                 BACKWARD, FORWARD, 34, 49, 49 };
+
+Pair wings = {leftWing, rightWing, leftMotor, rightMotor};
 
 /*
  * Starting up things.
@@ -57,128 +59,151 @@ void setup() {
 
 
  long ultrasonic_dist(Wing wing) {
+  
   digitalWrite(wing.trigPin, LOW);  // Added this line
   delayMicroseconds(2); // Added this line
   digitalWrite(wing.trigPin, HIGH);
   //  delayMicroseconds(1000); - Removed this line
   delayMicroseconds(10); // Added this line
   digitalWrite(wing.trigPin, LOW);
-  long distance = pulseIn(wing.echoPin, HIGH);
-  return distance;
+  long distance = pulseIn(wing.echoPin, HIGH, 200000);
+  Serial.println(distance);
+  if (distance > 0) {
+    return distance;
+  } 
+  return 10000;
  }
- 
-
- Wing flex_follow(Adafruit_DCMotor *motor, Wing wing) {
-  long dist = ultrasonic_dist(wing);
-  int potVal = analogRead(wing.potPin);
-  int flexVal = analogRead(wing.flexInputPin);
-  int flexPot = map(-flexVal, -840, -760, wing.minHeight, wing.maxHeight);
-  flexPot = constrain(flexPot, wing.minHeight, wing.maxHeight);
-  Serial.println(flexPot);
-  Serial.println(potVal);
-  Serial.println(dist);
-
-  motor->setSpeed(150);
-  if (potVal > 60) {
-    motor->run(wing.downDirection);
-  } else if (potVal < 40) {
-    motor->run(wing.upDirection);
-//  } else if (dist <= 1000) {
-//    Serial.println("ultrasonic sensor!");
-//    motor->run(RELEASE);
-//    delay(200);
-  } else if (abs(flexPot - potVal) < 2) {
-    motor->run(RELEASE);
-  } else if (flexPot > potVal) {
-    motor->run(wing.upDirection);
-  } else {
-    motor->run(wing.downDirection);
-  }
-  delay(100);
-  return wing;
- }
-
-// Wing flap(Adafruit_DCMotor *motor, Wing wing) {
-////  long dist = ultrasonic_dist(wing);
-//  int potVal = analogRead(wing.potPin);
-//  int flexVal = analogRead(wing.flexInputPin);
-//  Serial.println(potVal);
-//  // new right potVal: 0 to 84
-//  // int angle = map(potVal, 38, , 45, 90);
-//  motor->setSpeed(150);
-////  if (dist <= 1000) {
-////    if (potVal >= wing.minHeight) {
-////      wing.isOpening = false;
-////      motor->run(RELEASE);
-////      delay(100);
-////    } else {
-////      motor->run(RELEASE);
-////      delay(100);
-////      return wing;
-////    }
-////  }
-//  if (wing.isOpening) {
-//    // going up if we can
-//    if (potVal >= wing.maxHeight) {
-//      wing.isOpening = false;
-//       motor->run(RELEASE);
-//    } else {
-//      motor->run(wing.upDirection);
-//  } 
-//  } else {
-//    // going down if we can
-//    if (potVal <= wing.minHeight) {
-//      wing.isOpening = true;
-//       motor->run(RELEASE);
-//  } else {
-//      motor->run(wing.downDirection);
-//    }
-//  }
-//  delay(50);
-//  return wing;
-// }
 
 Wing set_goalval(Wing wing, int goal) {
   wing.goalVal = goal;
   return wing;
 }
 
-Wing go_to_angle(Adafruit_DCMotor *motor, Wing wing) {
-  // make sure there's an angle to go to
-  if (wing.goalVal == NULL) {
-    Serial.println("No goal angle. Go directly to jail do not collect $200");
-    return wing;
-  }
+/*
+ * Flap em both at once
+ */
+Pair flap_2_wings(Pair wings) {
+  // unpack values
+  Wing lWing = wings.wingLeft;
+  Wing rWing = wings.wingRight;
+  Adafruit_DCMotor *lMotor = wings.motorLeft;
+  Adafruit_DCMotor *rMotor = wings.motorRight;
 
-  // read the pot
-  int potVal = analogRead(wing.potPin);
-  Serial.println(potVal);
-  wing.currentpos = potVal;
-  // if we want to go up, go up.
-  if (wing.goalVal > potVal) {
-    // make sure we're not too high
-    if (potVal < wing.maxHeight) {
-      motor->run(wing.upDirection);
-    }
-    // if we are, just stop.
-    else {
-      motor->run(RELEASE);
+  long rUltraVal = ultrasonic_dist(rWing);
+  long lUltraVal = ultrasonic_dist(lWing);
+
+  rUltraVal = ultrasonic_dist(rWing);
+  lUltraVal = ultrasonic_dist(lWing);
+
+  int rPotVal = analogRead(rWing.potPin);
+  int rFlexVal = analogRead(rWing.flexInputPin);
+
+  int lPotVal = analogRead(lWing.potPin);
+  int lFlexVal = analogRead(lWing.flexInputPin);
+
+  Serial.println(rPotVal);
+  Serial.println(lPotVal);
+
+  // if youre too close go down
+  if ( (rUltraVal < 1000) or (lUltraVal < 1000) ) {
+    Serial.println("retreat!");
+    lWing.isOpening = false;
+    rWing.isOpening = false;
+    lMotor->run(RELEASE);
+    rMotor->run(RELEASE);
+    delay(50);
+  }
+  
+  if (!lWing.isWaiting) {
+        // left wing
+    if (lWing.isOpening) {
+      if (lPotVal >= lWing.maxHeight) {
+        lMotor->run(RELEASE);
+        lWing.isWaiting = true;
+        lWing.isOpening = false;
+      } else {
+        lMotor->run(lWing.upDirection);
+      }
+      } else {
+        if (lPotVal <= lWing.minHeight) {
+          lWing.isWaiting = true;
+          lWing.isOpening = true;
+          lMotor->run(RELEASE);
+      } else {
+        lMotor->run(lWing.downDirection);
+      }
     }
   } 
-  // if we want to go down, go down.
-  else if (wing.goalVal < potVal) {
-    // make sure we're not too low
-    if (potVal > wing.minHeight) {
-      motor->run(wing.downDirection);
+  if (!rWing.isWaiting) {
+    // right wing
+    if (rWing.isOpening) {
+      if (rPotVal >= rWing.maxHeight) {
+        rMotor->run(RELEASE);
+        rWing.isWaiting = true;
+        rWing.isOpening = false;
+      } else {
+        rMotor->run(rWing.upDirection);
+      }
+      } else {
+        if (rPotVal <= rWing.minHeight) {
+          rWing.isWaiting = true;
+          rWing.isOpening = true;
+          rMotor->run(RELEASE);
+      } else {
+        rMotor->run(rWing.downDirection);
+      }
     }
-    // if we are, stop it. get some help.
-    else {
-      motor->run(RELEASE);
-    }
+  } 
+  if (lWing.isWaiting and rWing.isWaiting) {
+    // if they're both waiting, neither is waiting!
+    lWing.isWaiting = false;
+    rWing.isWaiting = false;
+    
   }
-  // wait for a bit
+  Pair newWings = {lWing, rWing, lMotor, rMotor};
   delay(50);
-  return wing;
+  return newWings;
+}
+
+/*
+ * Move both to the flex sensor value
+ */
+ Pair flex_follow_2_wings(Pair wings) {
+  // unpack
+  Wing lWing = wings.wingLeft;
+  Wing rWing = wings.wingRight;
+  Adafruit_DCMotor *lMotor = wings.motorLeft;
+  Adafruit_DCMotor *rMotor = wings.motorRight;
+
+  // get the ultrasonic sensor values
+  long rUltraVal = ultrasonic_dist(rWing);
+  long lUltraVal = ultrasonic_dist(lWing);
+  rUltraVal = ultrasonic_dist(rWing);
+  lUltraVal = ultrasonic_dist(lWing);
+
+  // get the right potentiometer and flex values
+  int rPotVal = analogRead(rWing.potPin);
+  int rFlexVal = analogRead(rWing.flexInputPin);
+
+  // get the left potentiometer and flex values
+  int lPotVal = analogRead(lWing.potPin);
+  int lFlexVal = analogRead(lWing.flexInputPin);
+
+  Serial.println(rPotVal);
+  Serial.println(lPotVal);
+
+  // if youre too close go down
+  if ( (rUltraVal < 1000) or (lUltraVal < 1000) ) {
+    Serial.println("retreat!");
+    lWing.isOpening = false;
+    rWing.isOpening = false;
+    lMotor->run(RELEASE);
+    rMotor->run(RELEASE);
+    delay(50);
+  }
+
+  
+  
  }
 
 /*
@@ -196,7 +221,10 @@ void loop() {
 //rightWing = flex_follow(rightMotor, rightWing);
 // leftWing = flap(leftMotor, leftWing);
 // rightWing = go_to_angle(rightMotor, rightWing);
-leftWing = go_to_angle(leftMotor, leftWing);
-Serial.println(leftWing.goalVal);
+// leftWing = go_to_angle(leftMotor, leftWing);
+
+wings = flap_2_wings(wings);
+
+// Serial.println(leftWing.goalVal);
 
 }
