@@ -22,8 +22,10 @@ int delayTime = 20;
 // defining wing structs, in the following order:
 // trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
 // upDirection, downDirection, minHeight, maxHeight, goalVal
-Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, FORWARD, BACKWARD, 48, 57,};
-Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true, BACKWARD, FORWARD, 38, 47};
+Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, 
+                  FORWARD, BACKWARD, 48, 57, 42 };
+Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true,
+                 BACKWARD, FORWARD, 38, 47 };
 
 /*
  * Starting up things.
@@ -144,30 +146,33 @@ Wing go_to_angle(Adafruit_DCMotor *motor, Wing wing) {
   // make sure there's an angle to go to
   if (wing.goalVal == NULL) {
     Serial.println("No goal angle. Go directly to jail do not collect $200");
+    return wing;
   }
+
   // read the pot
   int potVal = analogRead(wing.potPin);
+  Serial.println(potVal);
   wing.currentpos = potVal;
   // if we want to go up, go up.
   if (wing.goalVal > potVal) {
     // make sure we're not too high
     if (potVal < wing.maxHeight) {
-      wing->run(wing.upDirection);
+      motor->run(wing.upDirection);
     }
     // if we are, just stop.
     else {
-      wing->run(RELEASE);
+      motor->run(RELEASE);
     }
   } 
   // if we want to go down, go down.
   else if (wing.goalVal < potVal) {
     // make sure we're not too low
     if (potVal > wing.minHeight) {
-      wing->run(wing.downDirection);
+      motor->run(wing.downDirection);
     }
     // if we are, stop it. get some help.
     else {
-      wing->run(RELEASE);
+      motor->run(RELEASE);
     }
   }
   // wait for a bit
@@ -186,8 +191,10 @@ void isr_fold_down() {
 
 void loop() {
 
-rightWing = flap(rightMotor, rightWing);
+// rightWing = flap(rightMotor, rightWing);
 //rightWing = flex_follow(rightMotor, rightWing);
-leftWing = flap(leftMotor, leftWing);
+// leftWing = flap(leftMotor, leftWing);
+rightWing = go_to_angle(rightMotor, rightWing);
+Serial.println(rightWing.goalVal);
 
 }
