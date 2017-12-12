@@ -21,9 +21,9 @@ int delayTime = 20;
 // MIN LEFT: 28 MAX LEFT: 50
 // defining wing structs, in the following order:
 // trigPin, echoPin, flexInputPin, potPin, currentpos, flexSensorVal, isUpFlutter, isOpening
-// upDirection, downDirection
-Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, FORWARD, BACKWARD, 41, 60};
-Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true, BACKWARD, FORWARD, 31, 50};
+// upDirection, downDirection, minHeight, maxHeight, goalVal
+Wing rightWing = {12, 13, A2, A0, NULL, NULL, true, true, FORWARD, BACKWARD, 48, 57,};
+Wing leftWing = {10, 11, A3, A1, NULL, NULL, true, true, BACKWARD, FORWARD, 38, 47};
 
 /*
  * Starting up things.
@@ -63,13 +63,14 @@ void setup() {
   long distance = pulseIn(wing.echoPin, HIGH);
   return distance;
  }
+ 
 
  Wing flex_follow(Adafruit_DCMotor *motor, Wing wing) {
   long dist = ultrasonic_dist(wing);
   int potVal = analogRead(wing.potPin);
   int flexVal = analogRead(wing.flexInputPin);
-  int flexPot = map(-flexVal, -840, -760, 40, 60);
-  flexPot = constrain(flexPot, 40, 60);
+  int flexPot = map(-flexVal, -840, -760, wing.minHeight, wing.maxHeight);
+  flexPot = constrain(flexPot, wing.minHeight, wing.maxHeight);
   Serial.println(flexPot);
   Serial.println(potVal);
   Serial.println(dist);
@@ -95,7 +96,7 @@ void setup() {
  }
 
  Wing flap(Adafruit_DCMotor *motor, Wing wing) {
-  long dist = ultrasonic_dist(wing);
+//  long dist = ultrasonic_dist(wing);
   int potVal = analogRead(wing.potPin);
   int flexVal = analogRead(wing.flexInputPin);
   Serial.println(potVal);
@@ -130,7 +131,47 @@ void setup() {
       motor->run(wing.downDirection);
     }
   }
-  delay(100);
+  delay(50);
+  return wing;
+ }
+
+Wing set_goalval(Wing wing, int goal) {
+  wing.goalVal = goal;
+  return wing;
+}
+
+Wing go_to_angle(Adafruit_DCMotor *motor, Wing wing) {
+  // make sure there's an angle to go to
+  if (wing.goalVal == NULL) {
+    Serial.println("No goal angle. Go directly to jail do not collect $200");
+  }
+  // read the pot
+  int potVal = analogRead(wing.potPin);
+  wing.currentpos = potVal;
+  // if we want to go up, go up.
+  if (wing.goalVal > potVal) {
+    // make sure we're not too high
+    if (potVal < wing.maxHeight) {
+      wing->run(wing.upDirection);
+    }
+    // if we are, just stop.
+    else {
+      wing->run(RELEASE);
+    }
+  } 
+  // if we want to go down, go down.
+  else if (wing.goalVal < potVal) {
+    // make sure we're not too low
+    if (potVal > wing.minHeight) {
+      wing->run(wing.downDirection);
+    }
+    // if we are, stop it. get some help.
+    else {
+      wing->run(RELEASE);
+    }
+  }
+  // wait for a bit
+  delay(50);
   return wing;
  }
 
