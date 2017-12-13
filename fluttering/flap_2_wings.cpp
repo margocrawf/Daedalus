@@ -16,11 +16,11 @@ Pair flap_2_wings(Pair wings) {
   Adafruit_DCMotor *lMotor = wings.motorLeft;
   Adafruit_DCMotor *rMotor = wings.motorRight;
 
-  long rUltraVal = ultrasonic_dist(rWing);
-  long lUltraVal = ultrasonic_dist(lWing);
+  long rfUltraVal = ultrasonic_dist(rWing, "front");
+  long lfUltraVal = ultrasonic_dist(lWing, "front");
 
-  rUltraVal = ultrasonic_dist(rWing);
-  lUltraVal = ultrasonic_dist(lWing);
+  long rsUltraVal = ultrasonic_dist(rWing, "side");
+  long lsUltraVal = ultrasonic_dist(lWing, "side");
 
   int rPotVal = analogRead(rWing.potPin);
   int rFlexVal = analogRead(rWing.flexInputPin);
@@ -32,7 +32,7 @@ Pair flap_2_wings(Pair wings) {
   Serial.println(lPotVal);
 
   // if youre too close go down
-  if ( (rUltraVal < 1000) or (lUltraVal < 1000) ) {
+  if ( (rfUltraVal < 1000) or (lfUltraVal < 1000) or (rsUltraVal < 1000) or (lsUltraVal < 1000) ) {
     Serial.println("retreat!");
     lWing.isOpening = false;
     rWing.isOpening = false;

@@ -9,17 +9,17 @@
  * Move both to the flex sensor value
  */
  Pair flex_2_wings(Pair wings) {
-  // unpack
+  // unpack values
   Wing lWing = wings.wingLeft;
   Wing rWing = wings.wingRight;
   Adafruit_DCMotor *lMotor = wings.motorLeft;
   Adafruit_DCMotor *rMotor = wings.motorRight;
 
   // get the ultrasonic sensor values
-  long rUltraVal = ultrasonic_dist(rWing);
-  long lUltraVal = ultrasonic_dist(lWing);
-  rUltraVal = ultrasonic_dist(rWing);
-  lUltraVal = ultrasonic_dist(lWing);
+  long rfUltraVal = ultrasonic_dist(rWing, "front");
+  long lfUltraVal = ultrasonic_dist(lWing, "front");
+  long rsUltraVal = ultrasonic_dist(rWing, "side");
+  long lsUltraVal = ultrasonic_dist(lWing, "side");
 
   // get the right potentiometer and flex values
   int rPotVal = analogRead(rWing.potPin);
@@ -32,14 +32,15 @@
   Serial.println(rPotVal);
   Serial.println(lPotVal);
 
+
   // if youre too close go down
-  if ( (rUltraVal < 1000) or (lUltraVal < 1000) ) {
+  if ( (rsUltraVal < 1000) or (lsUltraVal < 1000) or (rfUltraVal < 1000) or (lfUltraVal < 1000) ) {
     Serial.println("retreat!");
-    lWing.isOpening = false;
-    rWing.isOpening = false;
     lMotor->run(RELEASE);
     rMotor->run(RELEASE);
     delay(50);
+    return wings;
+    
   }
 
   int lFlexPot = constrain(map(-lFlexVal, -lWing.flexMax, -lWing.flexMin, lWing.minHeight, lWing.maxHeight), lWing.minHeight, lWing.maxHeight);

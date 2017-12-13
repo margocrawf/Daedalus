@@ -10,7 +10,7 @@
 #include "flap_2_wings.h"
 
 // define motorshield
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 
 // define motors
 Adafruit_DCMotor *leftMotor = AFMS.getMotor(2);
@@ -25,9 +25,9 @@ int delayTime = 20;
 // sTrigPin, sEchoPin, fTrigPin, fEchoPin, flexInputPin, potPin, flexSensorVal, isWaiting, isOpening
 // upDirection, downDirection, minHeight, maxHeight, goalVal
 Wing rightWing = {12, 13, NULL, NULL, A2, A0,  NULL, false, true, 
-                  FORWARD, BACKWARD, 43, 60, 60 };
+                  FORWARD, BACKWARD, 43, 60, 50 };
 Wing leftWing = {10, 11, NULL, NULL, A3, A1, NULL, false, true,
-                 BACKWARD, FORWARD, 34, 49, 49 };
+                 BACKWARD, FORWARD, 34, 49, 39 };
 
 Pair wings = {leftWing, rightWing, leftMotor, rightMotor};
 
@@ -94,10 +94,10 @@ void loop() {
 //rightWing = flap_1_wing(rightMotor, rightWing);
 //rightWing = flex_1_wing(rightMotor, rightWing);
 //leftWing = flap_1_wing(leftMotor, leftWing);
-//rightWing = go_to_angle(rightMotor, rightWing);
+rightWing = go_to_angle(rightMotor, rightWing);
 //leftWing = go_to_angle(leftMotor, leftWing);
 
-wings = flap_2_wings(wings);
+// wings = flex_2_wings(wings);
 
 // Serial.println(leftWing.goalVal);
 
