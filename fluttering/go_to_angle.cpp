@@ -18,7 +18,6 @@
   // read the pot
   int potVal = analogRead(wing.potPin);
   Serial.println(potVal);
-  wing.currentpos = potVal;
   // if we want to go up, go up.
   if (wing.goalVal > potVal) {
     // make sure we're not too high
