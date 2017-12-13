@@ -16,6 +16,8 @@ typedef struct { int trigPin;
                  int minHeight;
                  int maxHeight;
                  int goalVal;
+                 int flexMin;
+                 int flexMax;
                  } Wing;
 
 typedef struct { Wing wingLeft;
