@@ -16,17 +16,17 @@ Wing flap_1_wing(Adafruit_DCMotor *motor, Wing wing) {
   // new right potVal: 0 to 84
   // int angle = map(potVal, 38, , 45, 90);
   motor->setSpeed(150);
-//  if (dist <= 1000) {
-//    if (potVal >= wing.minHeight) {
-//      wing.isOpening = false;
-//      motor->run(RELEASE);
-//      delay(100);
-//    } else {
-//      motor->run(RELEASE);
-//      delay(100);
-//      return wing;
-//    }
-//  }
+  if (dist <= 1000) {
+    if (potVal >= wing.minHeight) {
+      wing.isOpening = false;
+      motor->run(RELEASE);
+      delay(100);
+    } else {
+      motor->run(RELEASE);
+      delay(100);
+      return wing;
+    }
+  }
   if (wing.isOpening) {
     // going up if we can
     if (potVal >= wing.maxHeight) {

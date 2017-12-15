@@ -95,15 +95,6 @@ Wing set_goalval(Wing wing, int goal) {
 
 void loop() {
 
-//rightWing = flap_1_wing(rightMotor, rightWing);
-//rightWing = flex_1_wing(rightMotor, rightWing);
-//leftWing = flap_1_wing(leftMotor, leftWing);
-//rightWing = go_to_angle(rightMotor, rightWing);
-
 leftWing = go_to_angle(leftMotor, leftWing);
-
-// wings = flex_2_wings(wings);
-
-// Serial.println(leftWing.goalVal);
 
 }
