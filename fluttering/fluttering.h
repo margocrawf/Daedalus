@@ -9,7 +9,7 @@ typedef struct { int sTrigPin; // ultrasonic echo pins
                  int fEchoPin;
                  int flexInputPin; // flex sensor pin
                  int potPin; // potentiometer pin
-                 int flexSensorVal;  
+                 //int flexSensorVal;  
                  bool isWaiting; // is waiting for other one to meet it
                  bool isOpening; // is opening (in flap mode)
                  int upDirection; // motor direction for up
@@ -19,6 +19,7 @@ typedef struct { int sTrigPin; // ultrasonic echo pins
                  int goalVal; // for going to a specific angle
                  int flexMin; // minimum flex sensor value (should be reached at top)
                  int flexMax; // maximum flex sensor value (should be reached at bottom)
+                 Adafruit_DCMotor *motor; // the motor
                  } Wing;
 
 typedef struct { Wing wingLeft;

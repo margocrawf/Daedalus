@@ -24,10 +24,10 @@ int delayTime = 20;
 // defining wing structs, in the following order:
 // sTrigPin, sEchoPin, fTrigPin, fEchoPin, flexInputPin, potPin, flexSensorVal, isWaiting, isOpening
 // upDirection, downDirection, minHeight, maxHeight, goalVal
-Wing rightWing = {12, 13, NULL, NULL, A2, A0,  NULL, false, true, 
-                  FORWARD, BACKWARD, 43, 60, 50 };
-Wing leftWing = {10, 11, NULL, NULL, A3, A1, NULL, false, true,
-                 BACKWARD, FORWARD, 34, 49, 39 };
+Wing rightWing = {6, 7, 8, 9, A2, A3,  NULL, false, true, 
+                  FORWARD, BACKWARD, 41, 60, 50 };
+Wing leftWing = {12, 13, 10, 11, A1, A0, NULL, false, true,
+                 BACKWARD, FORWARD, 31, 50, 39 };
 
 Pair wings = {leftWing, rightWing, leftMotor, rightMotor};
 
@@ -48,11 +48,15 @@ void setup() {
   leftMotor->run(FORWARD);
   leftMotor->run(RELEASE);
 
-  pinMode(leftWing.sTrigPin, OUTPUT);
-  pinMode(rightWing.sTrigPin, OUTPUT);
-
-  pinMode(leftWing.sEchoPin, INPUT);
-  pinMode(rightWing.sEchoPin, INPUT);
+//  pinMode(leftWing.sTrigPin, OUTPUT);
+//  pinMode(rightWing.sTrigPin, OUTPUT);
+//  pinMode(leftWing.sEchoPin, INPUT);
+//  pinMode(rightWing.sEchoPin, INPUT);
+//
+//  pinMode(leftWing.fTrigPin, OUTPUT);
+//  pinMode(rightWing.fTrigPin, OUTPUT);
+//  pinMode(leftWing.fEchoPin, INPUT);
+//  pinMode(rightWing.fEchoPin, INPUT);
   
 }
 
@@ -94,8 +98,9 @@ void loop() {
 //rightWing = flap_1_wing(rightMotor, rightWing);
 //rightWing = flex_1_wing(rightMotor, rightWing);
 //leftWing = flap_1_wing(leftMotor, leftWing);
-rightWing = go_to_angle(rightMotor, rightWing);
-//leftWing = go_to_angle(leftMotor, leftWing);
+//rightWing = go_to_angle(rightMotor, rightWing);
+
+leftWing = go_to_angle(leftMotor, leftWing);
 
 // wings = flex_2_wings(wings);
 

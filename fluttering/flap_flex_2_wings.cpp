@@ -41,6 +41,7 @@ Pair flap_flex_2_wings(Pair wings) {
   int lFlexPot = constrain(map(-lFlexVal, -lWing.flexMax, -lWing.flexMin, lWing.minHeight, lWing.maxHeight), lWing.minHeight, lWing.maxHeight);
   int rFlexPot = constrain(map(-rFlexVal, -rWing.flexMax, -rWing.flexMin, rWing.minHeight, rWing.maxHeight), rWing.minHeight, rWing.maxHeight);
 
+  // LEFT WING
   // if youre waiting and your val is different, start to downflap.
   if (lWing.isWaiting) {
     if (abs(lFlexPot - lPotVal) > 2) {
@@ -48,7 +49,6 @@ Pair flap_flex_2_wings(Pair wings) {
       lWing.isOpening = false;
     } 
   }
-
   // if youre not waiting and your val is different-- if youre upflapping go up til val, if youre downflapping keep downflappin
   // if youre not waiting and your val is the same, start waiting.
   else {
@@ -78,6 +78,49 @@ Pair flap_flex_2_wings(Pair wings) {
       // u can still go down
       } else {
         lMotor->run(lWing.downDirection);
+      
+    }
+    
+  }
+  }
+  
+  // RIGHT WING
+  // if youre waiting and your val is different, start to downflap.
+  if (rWing.isWaiting) {
+    if (abs(lFlexPot - rPotVal) > 2) {
+      rWing.isWaiting = false;
+      rWing.isOpening = false;
+    } 
+  }
+  // if youre not waiting and your val is different-- if youre upflapping go up til val, if youre downflapping keep downflappin
+  // if youre not waiting and your val is the same, start waiting.
+  else {
+    // if ur opening
+    if (rWing.isOpening) {
+      // if youre not @ desired value
+      if (abs(rFlexPot - rPotVal) > 2) {
+        // if youre @ max val, STOP otherwise keep goin
+        if (rPotVal >= rWing.maxHeight) {
+          rMotor->run(RELEASE);
+          rWing.isOpening = false;
+        } else {
+          rMotor->run(rWing.upDirection);
+        }
+       // youre @ desired value!!!!!!
+      } else {
+        rWing.isWaiting = true;
+        rWing.isOpening = false;
+        rMotor->run(RELEASE);
+      }
+    // if youre not opening
+    } else {
+      // if ur too low
+      if (rPotVal <= rWing.minHeight) {
+          rWing.isOpening = true;
+          rMotor->run(RELEASE);
+      // u can still go down
+      } else {
+        rMotor->run(rWing.downDirection);
       
     }
     
